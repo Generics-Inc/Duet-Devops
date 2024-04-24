@@ -12,7 +12,7 @@ services:
     env_file:
       - .env
     networks:
-      - "${PROJECT_NAME}-network"
+      - network
     ports:
       - "80:80"
       - "443:443"
@@ -28,7 +28,7 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     networks:
-      - "${PROJECT_NAME}-network"
+      - network
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   server:
@@ -43,7 +43,7 @@ services:
     environment:
       - API_PORT=${SERVER_PORT:-4000}
     networks:
-      - "${PROJECT_NAME}-network"
+      - network
     expose:
       - "4000"
     depends_on:
@@ -60,7 +60,7 @@ services:
       - postgres:/var/lib/postgresql/data
       - ./containers/db/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
     networks:
-      - "${PROJECT_NAME}-network"
+      - network
     command: -p ${POSTGRES_PORT:-5432}
 
 volumes:
@@ -69,4 +69,4 @@ volumes:
 
 networks:
   network:
-    name: "${PROJECT_NAME}-network"
+    name: network
