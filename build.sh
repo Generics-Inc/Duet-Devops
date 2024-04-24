@@ -18,42 +18,42 @@ PROJECT_NAME="${PROJECT_NAME:-build}"
 
 if [ "$1" == "init" ];
   then
-  docker-compose up -d
+  docker compose up -d
   docker exec -d ${PROJECT_NAME}-server npm run db:push
 fi
 if [ "$1" == "start" ];
   then
-  docker-compose up -d
+  docker compose up -d
 fi
 if [ "$1" == "restart" ];
   then
-  docker-compose restart
+  docker compose restart
 fi
 if [ "$1" == "rebuild" ];
   then
   if [ "$2" == "nginx" ];
     then
-    docker-compose restart nginx
+    docker compose restart nginx
   fi
   if [ "$2" == "server" ];
     then
-    docker-compose build server
-    docker-compose up -d server
+    docker compose build server
+    docker compose up -d server
   fi
   if [ "$2" == "soft" ];
     then
-    docker-compose down
+    docker compose down
     docker rmi ${PROJECT_NAME}-server
     docker rmi ${PROJECT_NAME}-client
-    docker-compose up -d
+    docker compose up -d
   fi
   if [ "$2" == "full" ];
     then
-    docker-compose down
+    docker compose down
     docker rmi ${PROJECT_NAME}-server
     docker rmi ${PROJECT_NAME}-client
     docker volume rm ${PROJECT_NAME}-db
-    docker-compose up -d
+    docker compose up -d
   fi
 fi
 if [ "$1" == "logs" ];
