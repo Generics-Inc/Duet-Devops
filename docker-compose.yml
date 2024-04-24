@@ -32,7 +32,6 @@ services:
 
   server:
     container_name: "${PROJECT_NAME}-server"
-    image: "${PROJECT_NAME}-server"
     restart: always
     env_file:
       - server/docker/.env
