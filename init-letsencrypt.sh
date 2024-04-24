@@ -54,14 +54,14 @@ for domain in ${!domains[*]}; do
   if [ ! -e "$data_path/conf/live/$domain_name/cert.pem" ]; then
     echo "### Creating dummy certificate for $domain_name domain..."
     path="/etc/letsencrypt/live/$domain_name"
-    docker-compose run --rm --entrypoint "openssl req -x509 -nodes -newkey rsa:1024 \
+    docker compose run --rm --entrypoint "openssl req -x509 -nodes -newkey rsa:1024 \
     -days 1 -keyout '$path/privkey.pem' -out '$path/fullchain.pem' -subj '/CN=localhost'" certbot
   fi
 done
 
 echo "### Starting nginx ..."
 # Restarting for case if nginx container is already started
-docker-compose up -d nginx && docker-compose restart nginx
+docker compose up -d nginx && docker compose restart nginx
 
 # Select appropriate email arg
 case "$email" in
@@ -92,7 +92,7 @@ for domain in ${!domains[*]}; do
     done
 
     mkdir -p "$data_path/www"
-    docker-compose run --rm --entrypoint "certbot certonly --webroot -w /var/www/certbot --cert-name $domain_name $domain_args \
+    docker compose run --rm --entrypoint "certbot certonly --webroot -w /var/www/certbot --cert-name $domain_name $domain_args \
     $staging_arg $email_arg --rsa-key-size $rsa_key_size --agree-tos --force-renewal --non-interactive" certbot
   fi
 done
