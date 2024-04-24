@@ -6,7 +6,7 @@ services:
     image: nginx:stable
     restart: unless-stopped
     volumes:
-      - ./nginx/nginx${INIT:-0}.conf:/etc/nginx/nginx.conf.template
+      - ./nginx/nginx${INIT:-0}.conf:/etc/nginx/nginx.conf.template:rw,cached
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     env_file:
@@ -18,9 +18,7 @@ services:
       - "443:443"
     depends_on:
       - server
-    command:
-      - '/bin/bash -c ''envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf'''
-      - '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
+    command: '/bin/bash -c ''envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
   certbot:
     container_name: "${PROJECT_NAME}-certbot"
     image: certbot/certbot
