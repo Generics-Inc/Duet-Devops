@@ -4,7 +4,7 @@ export $(cat ./.env | grep -v ^# | xargs) >/dev/null
 
 domains=("${DOMAIN} www.${DOMAIN}")
 email=${EMAIL} # Adding a valid address is strongly recommended
-staging=${STAGING} # Set to 1 if you're testing your setup to avoid hitting request limits
+staging=${STAGING:-0} # Set to 1 if you're testing your setup to avoid hitting request limits
 
 data_path="./certbot"
 rsa_key_size=4096
