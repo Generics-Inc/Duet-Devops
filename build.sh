@@ -19,7 +19,7 @@ PROJECT_NAME="${PROJECT_NAME:-build}"
 if [ "$1" == "init" ];
   then
   docker-compose up -d
-  docker exec -d ${PROJECT_NAME}-api npm run db:push
+  docker exec -d ${PROJECT_NAME}-server npm run db:push
 fi
 if [ "$1" == "start" ];
   then
