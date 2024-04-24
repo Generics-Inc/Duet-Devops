@@ -1,0 +1,72 @@
+version: '3.9'
+
+services:
+  nginx:
+    container_name: "${PROJECT_NAME}-nginx"
+    image: nginx:stable
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx${STAGING:-0}.conf:/etc/nginx/nginx.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    env_file:
+      - .env
+    networks:
+      - "${PROJECT_NAME}-network"
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - client
+      - server
+    command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
+  certbot:
+    container_name: "${PROJECT_NAME}-certbot"
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    networks:
+      - "${PROJECT_NAME}-network"
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+  server:
+    container_name: "${PROJECT_NAME}-server"
+    image: "${PROJECT_NAME}-server"
+    restart: always
+    env_file:
+      - server/docker/.env
+    build:
+      context: ./server
+      dockerfile: ./docker/containers/api/Dockerfile
+    environment:
+      - API_PORT=${SERVER_PORT:-4000}
+    networks:
+      - "${PROJECT_NAME}-network"
+    expose:
+      - "4000"
+    depends_on:
+      - db
+  db:
+    container_name: "${PROJECT_NAME}-db"
+    image: postgres:13-alpine
+    restart: unless-stopped
+    env_file:
+      - server/docker/.env
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./containers/db/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+    networks:
+      - "${PROJECT_NAME}-network"
+    command: -p ${POSTGRES_PORT:-5432}
+
+volumes:
+  postgres:
+    name: "${PROJECT_NAME}-backend"
+
+networks:
+  network:
+    name: "${PROJECT_NAME}-network"
