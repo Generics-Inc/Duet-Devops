@@ -63,7 +63,7 @@ services:
 
 volumes:
   postgres:
-    name: "${PROJECT_NAME}-backend"
+    name: "${PROJECT_NAME}-db"
 
 networks:
   network:
