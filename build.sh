@@ -3,6 +3,9 @@ if [ "$#" -eq 0 ];
   echo "HELP:"
   echo "init - first initial project"
   echo "start - up all containers"
+  echo "db push - run db initialize"
+  echo "db migration - run db migration"
+  echo "db seed - run upload seed to db"
   echo "restart - restart docker containers"
   echo "rebuild nginx - rebuild only nginx container"
   echo "rebuild server - rebuild only server container"
@@ -30,6 +33,8 @@ if [ "$1" == "init" ];
   then
   docker compose up -d
   docker exec -d ${PROJECT_NAME}-server npm run db:push
+  docker exec -d ${PROJECT_NAME}-server npm run db:seed
+
 fi
 if [ "$1" == "start" ];
   then
@@ -38,6 +43,22 @@ fi
 if [ "$1" == "restart" ];
   then
   docker compose restart
+fi
+if [ "$1" == "db" ];
+  then
+  if [ "$2" == "push" ];
+    then
+    docker exec -d ${PROJECT_NAME}-server npm run db:push
+  fi
+  if [ "$2" == "migration" ];
+    then
+    docker exec -d ${PROJECT_NAME}-server npm run db:migration
+  fi
+  if [ "$2" == "seed" ];
+    then
+    docker exec -d ${PROJECT_NAME}-server npm run db:seed
+  fi
+
 fi
 if [ "$1" == "rebuild" ];
   then
