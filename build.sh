@@ -16,6 +16,16 @@ export $(cat ./.env | grep -v ^# | xargs) >/dev/null
 
 PROJECT_NAME="${PROJECT_NAME:-build}"
 
+cleanNone() {
+  images=$(docker images --filter "dangling=true" -q --no-trunc);
+
+  if [ -n "$images" ]; then
+      docker rmi $images
+  else
+      echo "There are no images to clean up";
+  fi
+}
+
 if [ "$1" == "init" ];
   then
   docker compose up -d
@@ -71,4 +81,7 @@ if [ "$1" == "logs" ];
     docker logs ${PROJECT_NAME}-db
   fi
 fi
-
+if [ "$1" == "clean" ];
+  then
+  cleanNone
+fi
