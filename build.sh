@@ -15,9 +15,7 @@ if [ "$#" -eq 0 ];
   echo "logs db - db container logs"
 fi
 
-export $(cat ./.env | grep -v ^# | xargs) >/dev/null
-
-PROJECT_NAME="${PROJECT_NAME:-build}"
+env PROJECT_NAME=build
 
 cleanNone() {
   images=$(docker images --filter "dangling=true" -q --no-trunc);
