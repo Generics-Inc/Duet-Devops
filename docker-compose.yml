@@ -46,6 +46,7 @@ services:
       - "4000"
     depends_on:
       - db
+      - minio
   db:
     container_name: "${PROJECT_NAME}-db"
     image: postgres:13-alpine
@@ -60,6 +61,16 @@ services:
     networks:
       - network
     command: -p ${POSTGRES_PORT:-5432}
+  minio:
+    container_name: duet-minio
+    image: minio/minio
+    ports:
+      - '5555:9001'
+    env_file:
+      - .env
+    networks:
+      - network
+    command: server /data --console-address ":9001"
 
 volumes:
   postgres:
