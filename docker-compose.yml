@@ -34,7 +34,7 @@ services:
     container_name: "${PROJECT_NAME}-server"
     restart: always
     env_file:
-      - server/docker/.env
+      - .env
     build:
       context: ./server
       dockerfile: ./docker/containers/api/Dockerfile
@@ -52,7 +52,7 @@ services:
     image: postgres:13-alpine
     restart: unless-stopped
     env_file:
-      - server/docker/.env
+      - .env
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
@@ -62,12 +62,14 @@ services:
       - network
     command: -p ${POSTGRES_PORT:-5432}
   minio:
-    container_name: duet-minio
+    container_name: "${PROJECT_NAME}-minio"
     image: minio/minio
     ports:
       - '5555:9001'
     env_file:
       - .env
+    volumes:
+      - minio-storage:/data
     networks:
       - network
     command: server /data --console-address ":9001"
@@ -75,6 +77,8 @@ services:
 volumes:
   postgres:
     name: "${PROJECT_NAME}-db"
+  minio:
+    name: "${PROJECT_NAME}-minio"
 
 networks:
   network:
