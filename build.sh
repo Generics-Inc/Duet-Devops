@@ -1,9 +1,17 @@
+set -a
+source .env
+set +a
+env
+
+clear
+
 if [ "$#" -eq 0 ];
   then
   echo "HELP:"
   echo "init - first initial project"
   echo "start - up all containers"
   echo "db push - run db initialize"
+  echo "db push:force - run db push with data delete"
   echo "db migration - run db migration"
   echo "db seed - run upload seed to db"
   echo "restart - restart docker containers"
@@ -14,11 +22,6 @@ if [ "$#" -eq 0 ];
   echo "logs server - server container logs"
   echo "logs db - db container logs"
 fi
-
-set -a
-source .env
-set +a
-env
 
 PROJECT_NAME="${PROJECT_NAME:-build}"
 
@@ -52,6 +55,10 @@ if [ "$1" == "db" ];
   if [ "$2" == "push" ];
     then
     docker exec -d ${PROJECT_NAME}-server npm run db:push
+  fi
+  if [ "$2" == "push:force" ];
+    then
+    docker exec -d ${PROJECT_NAME}-server npm run db:push:force
   fi
   if [ "$2" == "migration" ];
     then

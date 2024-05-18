@@ -3,19 +3,17 @@
 export $(cat ./.env | grep -v ^# | xargs) >/dev/null
 
 domains=("${DOMAIN} www.${DOMAIN}")
-email=${EMAIL} # Adding a valid address is strongly recommended
-staging=${STAGING:-0} # Set to 1 if you're testing your setup to avoid hitting request limits
+email=${EMAIL}
+staging=${STAGING:-0}
 
 data_path="./certbot"
 rsa_key_size=4096
 regex="([^www.].+)"
 
-# root required
 if [ "$EUID" -ne 0 ]; then echo "Please run $0 as root." && exit; fi
 
 clear
 
-# Menu for existing folder
 for domain in ${domains[@]}; do
   domain_name=`echo $domain | grep -o -P $regex`
   if [ -d "$data_path/conf/live/$domain_name" ]; then
@@ -60,16 +58,13 @@ for domain in ${!domains[*]}; do
 done
 
 echo "### Starting nginx ..."
-# Restarting for case if nginx container is already started
 docker compose up -d nginx && docker compose restart nginx
 
-# Select appropriate email arg
 case "$email" in
   "") email_arg="--register-unsafely-without-email" ;;
   *) email_arg="--email $email" ;;
 esac
 
-# Enable staging mode if needed
 if [ $staging != "0" ]; then staging_arg="--staging"; fi
 
 for domain in ${!domains[*]}; do
@@ -85,7 +80,6 @@ for domain in ${!domains[*]}; do
 
     echo "### Requesting Let's Encrypt certificate for $domain_name domain ..."
 
-    #Join $domains to -d args
     domain_args=""
     for domain in "${domain_set[@]}"; do
       domain_args="$domain_args -d $domain"
