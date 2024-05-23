@@ -5,6 +5,7 @@ export $(cat ./.env | grep -v ^# | xargs) >/dev/null
 project_name="${PROJECT_NAME:-build}"
 domains=("${DOMAIN} www.${DOMAIN} minio.${DOMAIN} www.minio.${DOMAIN}")
 email=${EMAIL}
+init=${INIT:-0}
 staging=${STAGING:-0}
 data_path="./certbot"
 rsa_key_size=4096
@@ -53,7 +54,7 @@ function certificateBuilder {
   done
 
   echo "### Starting nginx... ###"
-  docker compose up -d nginx && docker compose restart nginx
+  docker compose up -e INIT="${init}" -d nginx && docker compose restart nginx
 
   case "$email" in
     "") email_arg="--register-unsafely-without-email" ;;
@@ -225,13 +226,11 @@ if [ "$1" == "cert" ]; then
         echo "### The process of creating new certificates has been started..."
       fi
     done
-    sed -i.bak "s/^INIT=.*/INIT=1/" .env
-    sleep 1
+    init=1
     certificateBuilder
-    sed -i.bak "s/^INIT=.*/INIT=0/" .env
-    sleep 1
+    init=0
     echo "### Restart nginx... ###"
-    docker compose up -d nginx && docker compose restart nginx
+    docker compose up -e INIT="${init}" -d nginx && docker compose restart nginx
     exit
   fi
   if [ "$2" == "skip" ]; then
