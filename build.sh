@@ -30,6 +30,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 function certificateBuilder {
+  sed -i.bak "s/^INIT=.*/INIT=1/" .env
   mkdir -p "$data_path"
 
   if [ ! -e "$data_path/conf/options-ssl-nginx.conf" ] && [ ! -e "$data_path/conf/ssl-dhparams.pem" ]; then
@@ -67,7 +68,8 @@ function certificateBuilder {
     domain_name=`echo ${domain_set[0]} | grep -o -P $regex`
 
     if [ -e "$data_path/conf/live/$domain_name/cert.pem" ]; then
-      echo "Skipping $domain_name domain"; else
+      echo "Skipping $domain_name domain";
+    else
       echo "### Deleting dummy certificate for $domain_name domain... ###"
       rm -rf "$data_path/conf/live/$domain_name"
       echo "### Requesting Let's Encrypt certificate for $domain_name domain... ###"
@@ -82,6 +84,10 @@ function certificateBuilder {
       $staging_arg $email_arg --rsa-key-size $rsa_key_size --agree-tos --force-renewal --non-interactive" certbot
     fi
   done
+
+  echo "### Restart nginx... ###"
+  docker compose up -d nginx && docker compose restart nginx
+  sed -i.bak "s/^INIT=.*/INIT=0/" .env
 }
 
 if [ "$1" == "init" ]; then
@@ -209,7 +215,8 @@ fi
 if [ "$1" == "cert" ]; then
   if [ "$#" -eq 1 ]; then
     echo "### Certificate HELP: "
-    echo "  create  - create or recreate certificates"
+    echo "  create  - create certificates"
+    echo "  update  - update certificates"
     echo "  skip    - skip certificate creation and restart containers"
     echo "  delete  - delete certificates"
     exit
