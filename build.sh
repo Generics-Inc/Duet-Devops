@@ -3,7 +3,7 @@
 export $(cat ./.env | grep -v ^# | xargs) >/dev/null
 
 project_name="${PROJECT_NAME:-build}"
-domains=("${DOMAIN} www.${DOMAIN}")
+domains=("${DOMAIN} www.${DOMAIN} minio.${DOMAIN} www.minio.${DOMAIN}")
 email=${EMAIL}
 staging=${STAGING:-0}
 data_path="./certbot"
@@ -19,9 +19,9 @@ if [ "$#" -eq 0 ]; then
   echo
   echo "init - first initial project"
   echo "start - up all containers"
-  echo "restart - restart all docker containers"
-  echo "clean - clear old build data"
+  echo "clean - clean old build data"
   echo
+  echo "restart - options for restarting any container"
   echo "db - options for operations with db"
   echo "rebuild - options for operations with builder containers"
   echo "logs - options for logs any running container"
@@ -33,7 +33,7 @@ function certificateBuilder {
   mkdir -p "$data_path"
 
   if [ ! -e "$data_path/conf/options-ssl-nginx.conf" ] && [ ! -e "$data_path/conf/ssl-dhparams.pem" ]; then
-    echo "### Downloading recommended TLS parameters... ###"
+    echo "### Downloading recommended TLS parameters..."
     mkdir -p "$data_path/conf"
     curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf > "$data_path/conf/options-ssl-nginx.conf"
     curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem > "$data_path/conf/ssl-dhparams.pem"
@@ -45,14 +45,14 @@ function certificateBuilder {
     mkdir -p "$data_path/conf/live/$domain_name"
 
     if [ ! -e "$data_path/conf/live/$domain_name/cert.pem" ]; then
-      echo "### Creating dummy certificate for $domain_name domain... ###"
+      echo "### Creating dummy certificate for $domain_name domain..."
       path="/etc/letsencrypt/live/$domain_name"
       docker compose run --rm --entrypoint "openssl req -x509 -nodes -newkey rsa:1024 \
       -days 1 -keyout '$path/privkey.pem' -out '$path/fullchain.pem' -subj '/CN=localhost'" certbot
     fi
   done
 
-  echo "### Starting nginx... ###"
+  echo "### Starting nginx..."
   docker compose up -d nginx && docker compose restart nginx
 
   case "$email" in
@@ -69,9 +69,9 @@ function certificateBuilder {
     if [ -e "$data_path/conf/live/$domain_name/cert.pem" ]; then
       echo "Skipping $domain_name domain";
     else
-      echo "### Deleting dummy certificate for $domain_name domain... ###"
+      echo "### Deleting dummy certificate for $domain_name domain..."
       rm -rf "$data_path/conf/live/$domain_name"
-      echo "### Requesting Let's Encrypt certificate for $domain_name domain... ###"
+      echo "### Requesting Let's Encrypt certificate for $domain_name domain..."
 
       domain_args=""
       for domain in "${domain_set[@]}"; do
@@ -95,21 +95,57 @@ if [ "$1" == "start" ]; then
   docker compose up -d
   exit
 fi
-if [ "$1" == "restart" ]; then
-  docker compose restart
-  exit
-fi
 if [ "$1" == "clean" ]; then
   docker system prune
+  exit
+fi
+if [ "$1" == "restart" ]; then
+  if [ "$#" -eq 1 ]; then
+    echo "### Restart HELP: "
+    echo "  all     - restart all containers"
+    echo "  nginx   - restart nginx container"
+    echo "  web     - restart web container"
+    echo "  server  - restart server container"
+    echo "  db      - restart db container"
+    echo "  minio   - restart minio container"
+    exit
+  fi
+
+  if [ "$2" == "all" ]; then
+    docker compose restart
+    exit
+  fi
+  if [ "$2" == "nginx" ]; then
+    docker compose restart nginx
+    exit
+  fi
+  if [ "$2" == "web" ]; then
+    docker compose restart web
+    exit
+  fi
+  if [ "$2" == "server" ]; then
+    docker compose restart server
+    exit
+  fi
+  if [ "$2" == "db" ]; then
+    docker compose restart db
+    exit
+  fi
+  if [ "$2" == "minio" ]; then
+    docker compose restart minio
+    exit
+  fi
+
+  echo "Unknown command! Exit...";
   exit
 fi
 if [ "$1" == "db" ]; then
   if [ "$#" -eq 1 ]; then
     echo "### DB HELP: "
-    echo "  db push        - run db initialize"
-    echo "  db push:force  - run db push with data delete"
-    echo "  db migration   - run db migration"
-    echo "  db seed        - run upload seed to db"
+    echo "  push         - run db initialize"
+    echo "  push:force   - run db push with data delete"
+    echo "  migration    - run db migration"
+    echo "  seed         - run upload seed to db"
     exit
   fi
 
@@ -136,14 +172,15 @@ fi
 if [ "$1" == "rebuild" ]; then
   if [ "$#" -eq 1 ]; then
     echo "### Rebuild HELP: "
-    echo "  rebuild nginx    - rebuild only nginx container"
-    echo "  rebuild web      - rebuild only web container"
-    echo "  rebuild server   - rebuild only server container"
-    echo "  rebuild full     - rebuild full app with remove db volume"
+    echo "  nginx   - rebuild nginx container"
+    echo "  web     - rebuild web container"
+    echo "  server  - rebuild server container"
+    echo "  full    - rebuild full app with remove db volume"
     exit
   fi
 
   if [ "$2" == "nginx" ]; then
+    docker compose up -d nginx
     docker compose restart nginx
     exit
   fi
@@ -180,10 +217,11 @@ fi
 if [ "$1" == "logs" ]; then
   if [ "$#" -eq 1 ]; then
     echo "### Logs HELP: "
-    echo "  nginx    - nginx container logs"
-    echo "  web      - web container logs"
-    echo "  server   - server container logs"
-    echo "  db       - db container logs"
+    echo "  nginx   - nginx container logs"
+    echo "  web     - web container logs"
+    echo "  server  - server container logs"
+    echo "  db      - db container logs"
+    echo "  minio   - minio container logs"
     exit
   fi
 
@@ -201,6 +239,10 @@ if [ "$1" == "logs" ]; then
   fi
   if [ "$2" == "db" ]; then
     docker logs "${project_name}-db"
+    exit
+  fi
+  if [ "$2" == "minio" ]; then
+    docker logs "${project_name}-minio"
     exit
   fi
 
@@ -236,7 +278,7 @@ if [ "$1" == "cert" ]; then
     for domain in ${domains[@]}; do
       domain_name=$(echo $domain | grep -o -P $regex)
       if [ ! -d "$data_path/conf/live/$domain_name" ]; then
-        echo "### No certificates were found. First, create them!"
+        echo "### No certificates [$domain] were found. First, create them!"
         exit
       fi
     done
