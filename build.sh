@@ -30,7 +30,6 @@ if [ "$#" -eq 0 ]; then
 fi
 
 function certificateBuilder {
-  sed -i.bak "s/^INIT=.*/INIT=1/" .env
   mkdir -p "$data_path"
 
   if [ ! -e "$data_path/conf/options-ssl-nginx.conf" ] && [ ! -e "$data_path/conf/ssl-dhparams.pem" ]; then
@@ -84,10 +83,6 @@ function certificateBuilder {
       $staging_arg $email_arg --rsa-key-size $rsa_key_size --agree-tos --force-renewal --non-interactive" certbot
     fi
   done
-
-  #echo "### Restart nginx... ###"
-  #docker compose up -d nginx && docker compose restart nginx
-  #sed -i.bak "s/^INIT=.*/INIT=0/" .env
 }
 
 if [ "$1" == "init" ]; then
@@ -215,14 +210,13 @@ fi
 if [ "$1" == "cert" ]; then
   if [ "$#" -eq 1 ]; then
     echo "### Certificate HELP: "
-    echo "  create  - create certificates"
-    echo "  update  - update certificates"
+    echo "  upsert  - create or update certificates"
     echo "  skip    - skip certificate creation and restart containers"
     echo "  delete  - delete certificates"
     exit
   fi
 
-  if [ "$2" == "create" ]; then
+  if [ "$2" == "upsert" ]; then
     for domain in ${domains[@]}; do
       domain_name=$(echo $domain | grep -o -P $regex)
       if [ -d "$data_path/conf/live/$domain_name" ]; then
@@ -231,7 +225,13 @@ if [ "$1" == "cert" ]; then
         echo "### The process of creating new certificates has been started..."
       fi
     done
+    sed -i.bak "s/^INIT=.*/INIT=1/" .env
+    sleep 1
     certificateBuilder
+    sed -i.bak "s/^INIT=.*/INIT=0/" .env
+    sleep 1
+    echo "### Restart nginx... ###"
+    docker compose up -d nginx && docker compose restart nginx
     exit
   fi
   if [ "$2" == "skip" ]; then
