@@ -85,9 +85,9 @@ function certificateBuilder {
     fi
   done
 
-  echo "### Restart nginx... ###"
-  docker compose up -d nginx && docker compose restart nginx
-  sed -i.bak "s/^INIT=.*/INIT=0/" .env
+  #echo "### Restart nginx... ###"
+  #docker compose up -d nginx && docker compose restart nginx
+  #sed -i.bak "s/^INIT=.*/INIT=0/" .env
 }
 
 if [ "$1" == "init" ]; then
