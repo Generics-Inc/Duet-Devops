@@ -175,6 +175,7 @@ if [ "$1" == "rebuild" ]; then
     echo "  nginx   - rebuild nginx container"
     echo "  web     - rebuild web container"
     echo "  server  - rebuild server container"
+    echo "  minio   - rebuild minio container"
     echo "  full    - rebuild full app with remove db volume"
     exit
   fi
@@ -192,6 +193,11 @@ if [ "$1" == "rebuild" ]; then
   if [ "$2" == "server" ]; then
     docker compose build server
     docker compose up -d server
+    exit
+  fi
+  if [ "$2" == "minio" ]; then
+    docker compose up -d minio
+    docker compose restart minio
     exit
   fi
   if [ "$2" == "soft" ]; then
