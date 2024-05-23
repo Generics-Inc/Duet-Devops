@@ -17,9 +17,10 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
+      - web
       - minio
       - server
-    command: /bin/bash -c "envsubst '$${DOMAIN} $${SERVER_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$${DOMAIN} $${CLIENT_PORT} $${SERVER_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
   certbot:
     container_name: "${PROJECT_NAME}-certbot"
     image: certbot/certbot
@@ -31,6 +32,20 @@ services:
       - network
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
+  web:
+    container_name: "${PROJECT_NAME}-web"
+    restart: always
+    env_file:
+      - .env
+    build:
+      context: ./web
+      dockerfile: ./docker/Dockerfile
+    environment:
+      - PORT=${CLIENT_PORT:-3000}
+    networks:
+      - network
+    expose:
+      - "3000"
   server:
     container_name: "${PROJECT_NAME}-server"
     restart: always
@@ -48,6 +63,7 @@ services:
     depends_on:
       - db
       - minio
+
   db:
     container_name: "${PROJECT_NAME}-db"
     image: postgres:13-alpine

@@ -1,3 +1,6 @@
 [submodule "server"]
 	path = server
 	url = https://github.com/Generics-Inc/Duet-Server.git
+[submodule "web"]
+	path = web
+	url = https://github.com/Generics-Inc/Duet-Web.git
