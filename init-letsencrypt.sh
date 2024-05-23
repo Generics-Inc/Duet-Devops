@@ -2,7 +2,7 @@
 
 export $(cat ./.env | grep -v ^# | xargs) >/dev/null
 
-domains=("${DOMAIN} www.${DOMAIN}")
+domains=("${DOMAIN} www.${DOMAIN} minio.${DOMAIN} www.minio.${DOMAIN}")
 email=${EMAIL}
 staging=${STAGING:-0}
 
