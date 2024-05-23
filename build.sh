@@ -229,7 +229,7 @@ if [ "$1" == "cert" ]; then
     certificateBuilder
     export INIT=0
     echo "### Restart nginx... ###"
-    docker compose up -e INIT="${init}" -d nginx && docker compose restart nginx
+    docker compose up -d nginx && docker compose restart nginx
     exit
   fi
   if [ "$2" == "skip" ]; then
