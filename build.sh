@@ -3,7 +3,7 @@
 export $(cat ./.env | grep -v ^# | xargs) >/dev/null
 
 project_name="${PROJECT_NAME:-build}"
-domains=("${DOMAIN} www.${DOMAIN} minio.${DOMAIN} www.minio.${DOMAIN}")
+domains=("${DOMAIN} www.${DOMAIN}")
 email=${EMAIL}
 staging=${STAGING:-0}
 data_path="./certbot"
