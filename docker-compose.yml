@@ -81,6 +81,7 @@ services:
   minio:
     container_name: "${PROJECT_NAME}-minio"
     image: minio/minio
+    restart: unless-stopped
     ports:
       - '9000:9000'
       - '9001:9001'
