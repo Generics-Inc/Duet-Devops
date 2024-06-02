@@ -18,8 +18,6 @@ services:
       - "443:443"
     depends_on:
       - web
-      - minio
-      - server
     command: /bin/bash -c "envsubst '$${DOMAIN} $${CLIENT_PORT} $${SERVER_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
   certbot:
     container_name: "${PROJECT_NAME}-certbot"
@@ -46,6 +44,8 @@ services:
       - network
     expose:
       - "3000"
+    depends_on:
+      - server
   server:
     container_name: "${PROJECT_NAME}-server"
     restart: always
@@ -63,6 +63,7 @@ services:
     depends_on:
       - db
       - minio
+      - rabbitmq
 
   db:
     container_name: "${PROJECT_NAME}-db"
@@ -92,12 +93,28 @@ services:
     networks:
       - network
     command: server /data --console-address ":9001"
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq
+    restart: always
+    ports:
+      - "15672:15672"
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 536870912
+    volumes:
+      - rabbitmq-storage:/var/lib/rabbitmq
+    networks:
+      - network
 
 volumes:
   postgres-storage:
     name: "${PROJECT_NAME}-db"
   minio-storage:
     name: "${PROJECT_NAME}-minio"
+  rabbitmq-storage:
+    name: "${PROJECT_NAME}-rabbitmq"
 
 networks:
   network:
