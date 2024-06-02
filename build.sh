@@ -102,12 +102,13 @@ fi
 if [ "$1" == "restart" ]; then
   if [ "$#" -eq 1 ]; then
     echo "### Restart HELP: "
-    echo "  all     - restart all containers"
-    echo "  nginx   - restart nginx container"
-    echo "  web     - restart web container"
-    echo "  server  - restart server container"
-    echo "  db      - restart db container"
-    echo "  minio   - restart minio container"
+    echo "  all       - restart all containers"
+    echo "  nginx     - restart nginx container"
+    echo "  web       - restart web container"
+    echo "  server    - restart server container"
+    echo "  db        - restart db container"
+    echo "  minio     - restart minio container"
+    echo "  rabbitmq  - restart minio container"
     exit
   fi
 
@@ -133,6 +134,10 @@ if [ "$1" == "restart" ]; then
   fi
   if [ "$2" == "minio" ]; then
     docker compose restart minio
+    exit
+  fi
+  if [ "$2" == "rabbitmq" ]; then
+    docker compose restart rabbitmq
     exit
   fi
 
@@ -172,11 +177,12 @@ fi
 if [ "$1" == "rebuild" ]; then
   if [ "$#" -eq 1 ]; then
     echo "### Rebuild HELP: "
-    echo "  nginx   - rebuild nginx container"
-    echo "  web     - rebuild web container"
-    echo "  server  - rebuild server container"
-    echo "  minio   - rebuild minio container"
-    echo "  full    - rebuild full app with remove db volume"
+    echo "  nginx     - rebuild nginx container"
+    echo "  web       - rebuild web container"
+    echo "  server    - rebuild server container"
+    echo "  minio     - rebuild minio container"
+    echo "  rabbitmq  - rebuild rabbitmq container"
+    echo "  full      - rebuild full app with remove db volume"
     exit
   fi
 
@@ -200,11 +206,9 @@ if [ "$1" == "rebuild" ]; then
     docker compose restart minio
     exit
   fi
-  if [ "$2" == "soft" ]; then
-    docker compose down
-    docker rmi "${project_name}-server"
-    docker rmi "${project_name}-web"
-    docker compose up -d
+  if [ "$2" == "rabbitmq" ]; then
+    docker compose up -d rabbitmq
+    docker compose restart rabbitmq
     exit
   fi
   if [ "$2" == "full" ]; then
@@ -213,6 +217,7 @@ if [ "$1" == "rebuild" ]; then
     docker rmi "${project_name}-web"
     docker volume rm "${project_name}-db"
     docker volume rm "${project_name}-minio"
+    docker volume rm "${project_name}-rabbitmq"
     docker compose up -d
     exit
   fi
@@ -223,11 +228,12 @@ fi
 if [ "$1" == "logs" ]; then
   if [ "$#" -eq 1 ]; then
     echo "### Logs HELP: "
-    echo "  nginx   - nginx container logs"
-    echo "  web     - web container logs"
-    echo "  server  - server container logs"
-    echo "  db      - db container logs"
-    echo "  minio   - minio container logs"
+    echo "  nginx     - nginx container logs"
+    echo "  web       - web container logs"
+    echo "  server    - server container logs"
+    echo "  db        - db container logs"
+    echo "  minio     - minio container logs"
+    echo "  rabbitmq  - rabbitmq container logs"
     exit
   fi
 
@@ -249,6 +255,10 @@ if [ "$1" == "logs" ]; then
   fi
   if [ "$2" == "minio" ]; then
     docker logs "${project_name}-minio"
+    exit
+  fi
+  if [ "$2" == "rabbitmq" ]; then
+    docker logs "${project_name}-rabbitmq"
     exit
   fi
 
