@@ -94,6 +94,7 @@ services:
       - network
     command: server /data --console-address ":9001"
   rabbitmq:
+    container_name: "${PROJECT_NAME}-rabbitmq"
     image: rabbitmq:3.10.7-management
     hostname: rabbitmq
     restart: always
