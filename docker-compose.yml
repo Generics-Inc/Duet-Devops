@@ -83,9 +83,6 @@ services:
     container_name: "${PROJECT_NAME}-minio"
     image: minio/minio
     restart: unless-stopped
-    ports:
-      - '9000:9000'
-      - '9001:9001'
     env_file:
       - .env
     volumes:
@@ -98,8 +95,6 @@ services:
     image: rabbitmq:3.10.7-management
     hostname: rabbitmq
     restart: always
-    ports:
-      - "15672:15672"
     env_file:
       - .env
     environment:
