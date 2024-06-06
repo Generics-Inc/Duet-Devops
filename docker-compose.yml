@@ -18,6 +18,9 @@ services:
       - "443:443"
     depends_on:
       - web
+      - server
+      - minio
+      - rabbitmq
     command: /bin/bash -c "envsubst '$${DOMAIN} $${CLIENT_PORT} $${SERVER_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
   certbot:
     container_name: "${PROJECT_NAME}-certbot"
@@ -32,7 +35,7 @@ services:
 
   web:
     container_name: "${PROJECT_NAME}-web"
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     build:
@@ -48,7 +51,7 @@ services:
       - server
   server:
     container_name: "${PROJECT_NAME}-server"
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     build:
@@ -94,7 +97,7 @@ services:
     container_name: "${PROJECT_NAME}-rabbitmq"
     image: rabbitmq:3.10.7-management
     hostname: rabbitmq
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     environment:
