@@ -96,7 +96,7 @@ if [ "$1" == "start" ]; then
   exit
 fi
 if [ "$1" == "clean" ]; then
-  docker system prune
+  docker system prune --force --all
   exit
 fi
 if [ "$1" == "restart" ]; then
