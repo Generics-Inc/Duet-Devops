@@ -20,6 +20,12 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
+## Init submodules
+```shell
+git submodule init
+git pull --recurse-submodules
+```
+
 ### Config .env
 ```shell
 cp .env.example .env
@@ -30,3 +36,10 @@ nano .env
 ```shell
 ./build.sh init
 ```
+
+### Get certs for server
+```shell
+./build.sh cert upsert
+```
+
+## DONE!

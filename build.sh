@@ -87,8 +87,8 @@ function certificateBuilder {
 
 if [ "$1" == "init" ]; then
   docker compose up -d
-  docker exec -d "${project_name}-server" npm run db:push
-  docker exec -d "${project_name}-server" npm run db:seed
+  docker exec "${project_name}-server" npm run db:push
+  docker exec "${project_name}-server" npm run db:seed
   exit
 fi
 if [ "$1" == "start" ]; then
@@ -155,19 +155,19 @@ if [ "$1" == "db" ]; then
   fi
 
   if [ "$2" == "push" ]; then
-    docker exec -d "${project_name}-server" npm run db:push
+    docker exec "${project_name}-server" npm run db:push
     exit
   fi
   if [ "$2" == "push:force" ]; then
-    docker exec -d "${project_name}-server" npm run db:push:force
+    docker exec "${project_name}-server" npm run db:push:force
     exit
   fi
   if [ "$2" == "migration" ]; then
-    docker exec -d "${project_name}-server" npm run db:migration
+    docker exec "${project_name}-server" npm run db:migration
     exit
   fi
   if [ "$2" == "seed" ]; then
-    docker exec -d "${project_name}-server" npm run db:seed
+    docker exec "${project_name}-server" npm run db:seed
     exit
   fi
 
